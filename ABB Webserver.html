@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glass Bottle Color Sorter</title>
+    <link rel="stylesheet" href="test.css">
+<base target="_blank">
+</head>
+<body>
+    <div class="container">
+        <h1>Advanced Bottle Bank</h1>
+
+        <!-- Main display and stats -->
+        <div class="main-section">
+            <div class="current-bottle">
+                <div id="currentDisplay" class="bottle-display clear">Clear</div>
+                <p id="colorInfo">Transparent glass bottle detected</p>
+                <div class="buttons">
+                    <button class="btn-secondary" onclick="resetAll()">Reset</button>
+                </div>
+                <p class="status" id="statusText">Simulation running...</p>
+            </div>
+
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-label">Total Bottles</div>
+                    <div class="stat-value" id="totalCount">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Rate (per minute)</div>
+                    <div class="stat-value" id="rateDisplay">0</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-label">Recent Events</div>
+                    <div class="recent-events" id="recentList">
+                        <div class="event-item">No events yet</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Color counters -->
+        <div class="counters-section">
+            <h3>Color Counters (click to add manually)</h3>
+
+            <div class="counter-row" onclick="addBottle('Clear')">
+                <div class="color-box" style="background-color: #e6eef6;"></div>
+                <div class="counter-info">
+                    <div class="counter-name">Clear</div>
+                    <div class="counter-desc">Transparent glass bottles</div>
+                </div>
+                <div class="counter-number" id="countClear">0</div>
+            </div>
+
+            <div class="counter-row" onclick="addBottle('Green')">
+                <div class="color-box" style="background-color: #22c55e;"></div>
+                <div class="counter-info">
+                    <div class="counter-name">Green</div>
+                    <div class="counter-desc">Green tinted bottles</div>
+                </div>
+                <div class="counter-number" id="countGreen">0</div>
+            </div>
+
+            <div class="counter-row" onclick="addBottle('Brown')">
+                <div class="color-box" style="background-color: #644117;"></div>
+                <div class="counter-info">
+                    <div class="counter-name">Brown</div>
+                    <div class="counter-desc">Brown bottles</div>
+                </div>
+                <div class="counter-number" id="countBrown">0</div>
+            </div>
+
+            <div class="counter-row" onclick="addBottle('Other')">
+                <div class="color-box" style="background-color: #000000;"></div>
+                <div class="counter-info">
+                    <div class="counter-name">Others</div>
+                    <div class="counter-desc">Other Colour bottles</div>
+                </div>
+                <div class="counter-number" id="countOther">0</div>
+            </div>
+        </div>
+
+        <!-- Chart -->
+        <div class="chart-section">
+            <h3>Bottle Count Chart</h3>
+            <canvas id="chart" width="700" height="250"></canvas>
+            <div class="buttons">
+                <button class="btn-secondary" onclick="toggleSimulation()" id="simButton">Pause Simulation</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Variables to store data
+        let counts = {
+            Clear: 0,
+            Green: 0,
+            Brown: 0,
+            Other: 0
+        };
+
+        let total = 0;
+        let recentEvents = [];
+        let simulationRunning = true;
+        let simulationInterval = null;
+        let websocket = null;
+        let eventTimes = []; // For calculating rate per minute
+
+        // Color information
+        const colorData = {
+            Clear: { class: 'clear', desc: 'Transparent glass bottle detected' },
+            Green: { class: 'green', desc: 'Green glass bottle detected' },
+            Brown: { class: 'brown', desc: 'Brown glass bottle detected' },
+            Other: { class: 'other', desc: 'Other glass bottle detected' }
+        };
+
+        // Add a bottle to the count
+        function addBottle(color, source = 'manual') {
+            // Update count
+            counts[color]++;
+            total++;
+
+            // Add to recent events
+            const time = new Date().toLocaleTimeString();
+            recentEvents.push({ color: color, time: time, source: source });
+
+            // Keep only last 20 events
+            if (recentEvents.length > 20) {
+                recentEvents.shift();
+            }
+
+            // Add timestamp for rate calculation
+            eventTimes.push(Date.now());
+
+            // Remove timestamps older than 1 minute
+            const oneMinuteAgo = Date.now() - 60000;
+            eventTimes = eventTimes.filter(t => t > oneMinuteAgo);
+
+            // Update display
+            updateDisplay(color);
+        }
+
+        // Update all the display elements
+        function updateDisplay(currentColor) {
+            // Update current bottle display
+            const display = document.getElementById('currentDisplay');
+            const info = document.getElementById('colorInfo');
+
+            display.textContent = currentColor;
+            display.className = 'bottle-display ' + colorData[currentColor].class;
+            info.textContent = colorData[currentColor].desc;
+
+            // Update counters
+            document.getElementById('countClear').textContent = counts.Clear;
+            document.getElementById('countGreen').textContent = counts.Green;
+            document.getElementById('countBrown').textContent = counts.Brown;
+            document.getElementById('countOther').textContent = counts.Other;
+            document.getElementById('totalCount').textContent = total;
+
+            // Update rate
+            document.getElementById('rateDisplay').textContent = eventTimes.length;
+
+            // Update recent events list
+            const list = document.getElementById('recentList');
+            if (recentEvents.length === 0) {
+                list.innerHTML = '<div class="event-item">No events yet</div>';
+            } else {
+                list.innerHTML = recentEvents.slice().reverse().map(e => 
+                    `<div class="event-item">${e.time} - ${e.color} (${e.source})</div>`
+                ).join('');
+            }
+
+            // Redraw chart
+            drawChart();
+        }
+
+        // Draw bar chart on canvas
+        function drawChart() {
+            const canvas = document.getElementById('chart');
+            const ctx = canvas.getContext('2d');
+
+            // Clear canvas
+            ctx.fillStyle = '#0f3460';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Chart settings
+            const colors = ['Clear', 'Green', 'Brown', 'Other'];
+            const barColors = ['#e6eef6', '#22c55e', '#644117', '#000000'];
+            const padding = 50;
+            const barWidth = 100;
+            const gap = 50;
+            const chartHeight = canvas.height - 100;
+
+            // Find max value for scaling
+            let maxCount = Math.max(...Object.values(counts), 1);
+            if (maxCount < 5) maxCount = 5; // Minimum scale
+
+            // Draw bars
+            colors.forEach((color, index) => {
+                const x = padding + index * (barWidth + gap);
+                const count = counts[color];
+                const barHeight = (count / maxCount) * chartHeight;
+                const y = canvas.height - padding - barHeight;
+
+                // Draw bar
+                ctx.fillStyle = barColors[index];
+                ctx.fillRect(x, y, barWidth, barHeight);
+
+                // Draw value on top
+                ctx.fillStyle = '#eee';
+                ctx.font = 'bold 16px Arial';
+                ctx.textAlign = 'center';
+                ctx.fillText(count, x + barWidth/2, y - 10);
+
+                // Draw label
+                ctx.fillStyle = '#aaa';
+                ctx.font = '14px Arial';
+                ctx.fillText(color, x + barWidth/2, canvas.height - padding + 20);
+            });
+
+            // Draw title
+            ctx.fillStyle = '#4fbdba';
+            ctx.font = 'bold 14px Arial';
+            ctx.textAlign = 'left';
+            ctx.fillText('Total: ' + total, 20, 30);
+        }
+
+        // Start simulation
+        function startSimulation() {
+            simulationInterval = setInterval(() => {
+                if (!simulationRunning) return;
+
+                // Random color with weighted probability
+                const rand = Math.random();
+                let color;
+                if (rand < 0.4) color = 'Clear';
+                else if (rand < 0.65) color = 'Green';
+                else if (rand < 0.85) color = 'Brown';
+                else color = 'Other';
+
+                addBottle(color, 'sim');
+            }, 2000); // New bottle every 2 seconds
+        }
+
+        // Toggle simulation on/off
+        function toggleSimulation() {
+            simulationRunning = !simulationRunning;
+            document.getElementById('simButton').textContent = 
+                simulationRunning ? 'Pause Simulation' : 'Resume Simulation';
+            document.getElementById('statusText').textContent = 
+                simulationRunning ? 'Simulation running...' : 'Simulation paused';
+        }
+
+        // Reset all counts
+        function resetAll() {
+            if (!confirm('Are you sure you want to reset all counts?')) return;
+
+            counts = { Clear: 0, Green: 0, Brown: 0, Other: 0 };
+            total = 0;
+            recentEvents = [];
+            eventTimes = [];
+
+            updateDisplay('Clear');
+        }
+        // Start everything when page loads
+        window.onload = function() {
+            updateDisplay('Clear');
+            startSimulation();
+        };
+    </script>
+</body>
+</html>
