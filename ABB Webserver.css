@@ -1,0 +1,199 @@
+      body {
+            font-family: Arial, sans-serif;
+            background-color: #1a1a2e;
+            color: #eee;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            color: #4fbdba;
+        }
+
+        /* Main display area */
+        .main-section {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 20px;
+            flex-wrap: wrap;
+        }
+
+        .current-bottle {
+            background-color: #16213e;
+            padding: 30px;
+            border-radius: 10px;
+            text-align: center;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .bottle-display {
+            font-size: 24px;
+            font-weight: bold;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            background-color: #e6eef6;
+            color: #1a1a2e;
+        }
+
+        /* Color classes for the display */
+        .clear { background-color: #e6eef6; color: #1a1a2e; }
+        .green { background-color: #22c55e; color: white; }
+        .brown { background-color: #644117; color: White; }
+        .other { background-color: #000000; color: white; }
+
+        /* Stats box */
+        .stats {
+            background-color: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            flex: 1;
+            min-width: 250px;
+        }
+
+        .stat-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #16213e;
+            border-radius: 5px;
+        }
+
+        .stat-label {
+            color: #aaa;
+            font-size: 14px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: bold;
+            color: #4fbdba;
+        }
+
+        /* Counter list */
+        .counters-section {
+            background-color: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+
+        .counter-row {
+            display: flex;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #16213e;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .counter-row:hover {
+            background-color: #1a4a7a;
+        }
+
+        .color-box {
+            width: 40px;
+            height: 40px;
+            border-radius: 5px;
+            margin-right: 15px;
+        }
+
+        .counter-info {
+            flex: 1;
+        }
+
+        .counter-name {
+            font-weight: bold;
+        }
+
+        .counter-desc {
+            font-size: 12px;
+            color: #aaa;
+        }
+
+        .counter-number {
+            font-size: 20px;
+            font-weight: bold;
+            min-width: 50px;
+            text-align: right;
+        }
+
+        /* Chart area */
+        .chart-section {
+            background-color: #16213e;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        canvas {
+            background-color: #0f3460;
+            border-radius: 5px;
+        }
+
+        /* Buttons */
+        .buttons {
+            margin-top: 15px;
+        }
+
+        button {
+            padding: 10px 20px;
+            margin: 5px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .btn-primary {
+            background-color: #4fbdba;
+            color: #1a1a2e;
+        }
+
+        .btn-secondary {
+            background-color: #ff0000;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background-color: #ff0000;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        /* Status text */
+        .status {
+            text-align: center;
+            color: #aaa;
+            font-size: 12px;
+            margin-top: 10px;
+        }
+
+        /* Recent events list */
+        .recent-events {
+            max-height: 100px;
+            overflow-y: auto;
+            background-color: #0f3460;
+            padding: 10px;
+            border-radius: 5px;
+            margin-top: 10px;
+        }
+
+        .event-item {
+            padding: 5px;
+            border-bottom: 1px solid #1a4a7a;
+            font-size: 12px;
+        }
+
+        .event-item:last-child {
+            border-bottom: none;
+        }
