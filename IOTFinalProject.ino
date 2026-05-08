@@ -128,7 +128,7 @@ String classifyColor() {
   return (bestIndex >= 0) ? profiles[bestIndex].name : "UNKNOWN";
 }
 
-void processBottle(String color) {
+void processBottle(String color) { 
   lastDetected = color;
   
   lcd.clear();
@@ -142,12 +142,19 @@ void processBottle(String color) {
     lcd.print(countGreen);
     GreenServo.write(15);
     delay(1000);
+   motorForward(); 
+    delay(2000);
+    motorStop();
     GreenServo.write(90);
   } 
   else if (color == "CLEAR") {
     countClear++;
     lcd.print(countClear);
     ClearServo.write(160);
+    delay(1000);
+   motorForward(); 
+    delay(2000);
+    motorStop();
     delay(1000);
     ClearServo.write(90);
   } 
@@ -156,11 +163,19 @@ void processBottle(String color) {
     lcd.print(countBrown);
     BrownServo.write(30);
     delay(1000);
+   motorForward(); 
+    delay(2000);
+    motorStop();
+    delay(1000);
     BrownServo.write(90);
   } 
   else {
     countOther++;
     lcd.print(countOther);
+    delay(1000);
+   motorForward(); 
+    delay(2000);
+    motorStop();
   }
 
   lcd.setCursor(15, 1);
@@ -258,4 +273,12 @@ void loop() {
   }
   
   delay(50);
+}
+void motorForward() {
+  analogWrite(MOTOR_E1, 200);
+  digitalWrite(MOTOR_M1, LOW);
+}
+
+void motorStop() {
+  analogWrite(MOTOR_E1, 0);
 }
